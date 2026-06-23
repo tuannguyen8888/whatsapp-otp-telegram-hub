@@ -1,0 +1,52 @@
+services:
+  hub-service:
+    build: .
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8787:8787"
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - evolution-api
+      - redis
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  evolution-api:
+    image: atendai/evolution-api:latest
+    restart: always
+    environment:
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://redis:6379/0
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    volumes:
+      - evolution_instances:/evolution/instances
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  evolution_instances:
+  redis_data:
