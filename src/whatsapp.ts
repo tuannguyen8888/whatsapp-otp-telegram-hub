@@ -29,6 +29,13 @@ type PendingQrWaiter = {
   timeout: NodeJS.Timeout;
 };
 
+type PairingSocket = Pick<WASocket, "requestPairingCode">;
+
+type PairingRetryOptions = {
+  retries?: number;
+  delayMs?: number;
+};
+
 export class WhatsAppClient {
   private readonly sockets = new Map<string, WASocket>();
   private readonly qrWaiters = new Map<string, PendingQrWaiter>();
@@ -133,7 +140,7 @@ export class WhatsAppClient {
 
   private async requestPairingCode(socket: WASocket, alias: string, phoneNumber: string): Promise<void> {
     try {
-      const pairingCode = await socket.requestPairingCode(phoneNumber.replace(/\D/g, ""));
+      const pairingCode = await requestPairingCodeWithRetry(socket, phoneNumber);
       this.resolveQr(alias, { pairingCode });
     } catch (error) {
       console.error(`Failed to request pairing code for ${alias}:`, error);
@@ -197,6 +204,31 @@ export function normalizeBaileysMessage(alias: string, message: unknown): Normal
   };
 }
 
+export async function requestPairingCodeWithRetry(
+  socket: PairingSocket,
+  phoneNumber: string,
+  options: PairingRetryOptions = {}
+): Promise<string> {
+  const retries = options.retries ?? 5;
+  const delayMs = options.delayMs ?? 1500;
+  const normalizedPhoneNumber = normalizePhoneNumberForPairing(phoneNumber);
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await socket.requestPairingCode(normalizedPhoneNumber);
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries) {
+        break;
+      }
+      await delay(delayMs);
+    }
+  }
+
+  throw lastError;
+}
+
 function extractText(message: WAMessage): string | undefined {
   const content = message.message;
   const text = content?.conversation
@@ -204,6 +236,14 @@ function extractText(message: WAMessage): string | undefined {
     ?? content?.imageMessage?.caption
     ?? content?.videoMessage?.caption;
   return typeof text === "string" && text.trim() !== "" ? text : undefined;
+}
+
+function normalizePhoneNumberForPairing(phoneNumber: string): string {
+  return phoneNumber.replace(/\D/g, "");
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function timestampToIso(timestamp: WAMessage["messageTimestamp"]): string {

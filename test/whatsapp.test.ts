@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeBaileysMessage } from "../src/whatsapp.js";
+import { normalizeBaileysMessage, requestPairingCodeWithRetry } from "../src/whatsapp.js";
 
 describe("normalizeBaileysMessage", () => {
   it("normalizes inbound text messages", () => {
@@ -23,5 +23,24 @@ describe("normalizeBaileysMessage", () => {
       key: { fromMe: true },
       message: { conversation: "123456" }
     })).toBeUndefined();
+  });
+});
+
+describe("requestPairingCodeWithRetry", () => {
+  it("retries when Baileys closes before accepting the pairing request", async () => {
+    let attempts = 0;
+    const socket = {
+      requestPairingCode: async (phoneNumber: string) => {
+        attempts += 1;
+        if (attempts === 1) {
+          throw new Error("Connection Closed");
+        }
+        expect(phoneNumber).toBe("848498717507");
+        return "12345678";
+      }
+    };
+
+    await expect(requestPairingCodeWithRetry(socket, "+848498717507", { retries: 2, delayMs: 1 })).resolves.toBe("12345678");
+    expect(attempts).toBe(2);
   });
 });
