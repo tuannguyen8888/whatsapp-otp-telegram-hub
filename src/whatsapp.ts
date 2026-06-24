@@ -160,14 +160,13 @@ export class WhatsAppClient {
 
   private resolveQr(alias: string, qr: QrResult): void {
     const waiter = this.qrWaiters.get(alias);
-    if (waiter) {
-      clearTimeout(waiter.timeout);
-      this.qrWaiters.delete(alias);
-      waiter.resolve(qr);
+    if (!waiter) {
       return;
     }
 
-    void this.options.onQr?.({ alias, instanceName: alias, ...qr });
+    clearTimeout(waiter.timeout);
+    this.qrWaiters.delete(alias);
+    waiter.resolve(qr);
   }
 
   private clearQrWaiter(alias: string): void {
