@@ -72,6 +72,40 @@ describe("handleAdminCommand", () => {
 
     expect(reply).toHaveBeenCalledWith(expect.stringContaining("/addwa <alias>"));
   });
+
+  it("handles group command suffix for /listwa", async () => {
+    const reply = vi.fn();
+    const store = fakeStore();
+
+    await handleAdminCommand({
+      ...baseContext,
+      text: "/listwa@mina_hub_bot",
+      allowedUserIds: new Set([111]),
+      reply,
+      sendPhoto: vi.fn(),
+      evolution: fakeEvolution(),
+      store
+    });
+
+    expect(store.list).toHaveBeenCalled();
+    expect(reply).toHaveBeenCalledWith("No WhatsApp instances yet.");
+  });
+
+  it("handles group command suffix for /delwa usage", async () => {
+    const reply = vi.fn();
+
+    await handleAdminCommand({
+      ...baseContext,
+      text: "/delwa@mina_hub_bot",
+      allowedUserIds: new Set([111]),
+      reply,
+      sendPhoto: vi.fn(),
+      evolution: fakeEvolution(),
+      store: fakeStore()
+    });
+
+    expect(reply).toHaveBeenCalledWith("Usage: /delwa <alias>");
+  });
 });
 
 describe("TELEGRAM_COMMANDS", () => {

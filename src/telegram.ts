@@ -28,7 +28,8 @@ type AdminCommandContext = {
 };
 
 export async function handleAdminCommand(context: AdminCommandContext): Promise<boolean> {
-  const [command, alias, phoneNumber] = context.text.trim().split(/\s+/);
+  const [rawCommand, alias, phoneNumber] = context.text.trim().split(/\s+/);
+  const command = normalizeCommand(rawCommand);
   if (!command.startsWith("/")) {
     return false;
   }
@@ -89,6 +90,10 @@ export async function handleAdminCommand(context: AdminCommandContext): Promise<
   }
 
   return false;
+}
+
+function normalizeCommand(command: string): string {
+  return command.split("@", 1)[0];
 }
 
 export function createTelegramBot(config: HubConfig, evolution: WhatsAppSessionClient, store: InstanceStore): Bot {
