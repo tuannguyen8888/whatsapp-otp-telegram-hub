@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { handleAdminCommand } from "../src/telegram.js";
+import { TELEGRAM_COMMANDS, handleAdminCommand } from "../src/telegram.js";
 
 const baseContext = {
   userId: 111,
@@ -55,6 +55,28 @@ describe("handleAdminCommand", () => {
     });
 
     expect(store.items[0]).toMatchObject({ phoneNumber: "+84901234567" });
+  });
+
+  it("shows help text for /help", async () => {
+    const reply = vi.fn();
+
+    await handleAdminCommand({
+      ...baseContext,
+      text: "/help",
+      allowedUserIds: new Set([111]),
+      reply,
+      sendPhoto: vi.fn(),
+      evolution: fakeEvolution(),
+      store: fakeStore()
+    });
+
+    expect(reply).toHaveBeenCalledWith(expect.stringContaining("/addwa <alias>"));
+  });
+});
+
+describe("TELEGRAM_COMMANDS", () => {
+  it("defines slash menu commands without leading slash", () => {
+    expect(TELEGRAM_COMMANDS.map((command) => command.command)).toEqual(["addwa", "qr", "listwa", "delwa", "help"]);
   });
 });
 

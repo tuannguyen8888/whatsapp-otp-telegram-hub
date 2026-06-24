@@ -1,7 +1,7 @@
 import { dirname, join } from "node:path";
 import { parseConfig } from "./config.js";
 import { InstanceStore } from "./storage.js";
-import { createTelegramBot, sendOtpToTelegram, sendQrToTelegram } from "./telegram.js";
+import { createTelegramBot, sendOtpToTelegram, sendQrToTelegram, setupTelegramCommands } from "./telegram.js";
 import { createWebhookServer } from "./webhook.js";
 import { WhatsAppClient } from "./whatsapp.js";
 import { extractOtp } from "./otp.js";
@@ -34,6 +34,8 @@ const whatsapp = new WhatsAppClient({
 });
 const bot = createTelegramBot(config, whatsapp, store);
 const server = createWebhookServer(config, bot, store);
+
+await setupTelegramCommands(bot);
 
 server.listen(config.port, () => {
   console.log(`WhatsApp OTP Telegram hub listening on ${config.port}`);

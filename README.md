@@ -15,6 +15,7 @@ The hub uses WhatsApp Web sessions. Those sessions can disconnect or become inva
 - Refresh QR with `/qr <alias>`.
 - List sessions with `/listwa`.
 - Delete sessions with `/delwa <alias>`.
+- Register Telegram slash command suggestions automatically.
 - Run locally or on a VPS with Docker Compose.
 
 ## Setup
@@ -52,6 +53,7 @@ WhatsApp session files are stored under `./data/sessions` when using Docker Comp
 /qr sim_openai_01
 /listwa
 /delwa sim_openai_01
+/help
 ```
 
 ## Development

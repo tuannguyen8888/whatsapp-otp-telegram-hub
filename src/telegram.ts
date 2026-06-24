@@ -3,6 +3,14 @@ import type { InstanceStore } from "./storage.js";
 import type { HubConfig, TelegramOtpMessage, WhatsAppInstance } from "./types.js";
 import { formatOtpMessage } from "./otp.js";
 
+export const TELEGRAM_COMMANDS = [
+  { command: "addwa", description: "Add WhatsApp session and show QR" },
+  { command: "qr", description: "Refresh QR for an alias" },
+  { command: "listwa", description: "List WhatsApp sessions" },
+  { command: "delwa", description: "Delete WhatsApp session" },
+  { command: "help", description: "Show command help" }
+] as const;
+
 type WhatsAppSessionClient = {
   createInstance: (alias: string, phoneNumber?: string) => Promise<{ qrBase64?: string; pairingCode?: string }>;
   connectInstance: (alias: string, phoneNumber?: string) => Promise<{ qrBase64?: string; pairingCode?: string }>;
@@ -27,6 +35,11 @@ export async function handleAdminCommand(context: AdminCommandContext): Promise<
 
   if (!context.allowedUserIds.has(context.userId)) {
     await context.reply("Unauthorized");
+    return true;
+  }
+
+  if (command === "/help" || command === "/start") {
+    await context.reply(formatHelpText());
     return true;
   }
 
@@ -105,6 +118,13 @@ export async function sendOtpToTelegram(bot: Bot, chatId: string, message: Teleg
   await bot.api.sendMessage(chatId, formatOtpMessage(message));
 }
 
+export async function setupTelegramCommands(bot: Bot): Promise<void> {
+  await Promise.all([
+    bot.api.setMyCommands(TELEGRAM_COMMANDS),
+    bot.api.setMyCommands(TELEGRAM_COMMANDS, { scope: { type: "all_group_chats" } })
+  ]);
+}
+
 export async function sendQrToTelegram(
   bot: Bot,
   chatId: string,
@@ -128,6 +148,18 @@ function formatInstanceList(instances: WhatsAppInstance[]): string {
   }
 
   return instances.map((instance) => `${instance.alias}: ${instance.status}`).join("\n");
+}
+
+function formatHelpText(): string {
+  return [
+    "WhatsApp OTP Hub commands:",
+    "/addwa <alias> - add WhatsApp session and show QR",
+    "/addwa <alias> <phoneNumber> - add with pairing code instead of QR",
+    "/qr <alias> - refresh QR",
+    "/listwa - list sessions",
+    "/delwa <alias> - delete session",
+    "/help - show this help"
+  ].join("\n");
 }
 
 function qrBase64ToInputFile(qrBase64: string): InputFile {
