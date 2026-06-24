@@ -20,10 +20,14 @@
     "self-hosted"
   ],
   "dependencies": {
-    "grammy": "^1.41.1"
+    "baileys": "^7.0.0-rc13",
+    "grammy": "^1.41.1",
+    "pino": "^10.3.1",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@types/qrcode": "^1.5.6",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"

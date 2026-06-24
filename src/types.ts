@@ -2,13 +2,10 @@ export type InstanceStatus = "connected" | "pending_qr" | "disconnected" | "unkn
 
 export type HubConfig = {
   port: number;
-  publicUrl: string;
   storagePath: string;
   telegramBotToken: string;
   telegramOtpChatId: string;
   telegramAllowedUserIds: Set<number>;
-  evolutionApiBaseUrl: string;
-  evolutionApiKey: string;
   evolutionWebhookSecret: string;
 };
 
@@ -27,6 +24,13 @@ export type NormalizedWhatsAppMessage = {
   from: string;
   text: string;
   timestamp: string;
+};
+
+export type NormalizedQrUpdate = {
+  alias: string;
+  instanceName: string;
+  qrBase64?: string;
+  pairingCode?: string;
 };
 
 export type TelegramOtpMessage = {

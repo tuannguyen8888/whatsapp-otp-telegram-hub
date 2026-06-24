@@ -3,13 +3,10 @@ import { parseConfig } from "../src/config.js";
 
 const validEnv = {
   PORT: "8787",
-  HUB_PUBLIC_URL: "https://hub.example.com",
   HUB_STORAGE_PATH: "./data/instances.json",
   TELEGRAM_BOT_TOKEN: "telegram-token",
   TELEGRAM_OTP_CHAT_ID: "-100123",
   TELEGRAM_ALLOWED_USER_IDS: "111,222",
-  EVOLUTION_API_BASE_URL: "http://evolution-api:8080",
-  EVOLUTION_API_KEY: "evo-key",
   EVOLUTION_WEBHOOK_SECRET: "secret"
 };
 
@@ -18,7 +15,6 @@ describe("parseConfig", () => {
     const config = parseConfig(validEnv);
 
     expect(config.port).toBe(8787);
-    expect(config.publicUrl).toBe("https://hub.example.com");
     expect(config.telegramAllowedUserIds.has(111)).toBe(true);
     expect(config.telegramAllowedUserIds.has(222)).toBe(true);
   });

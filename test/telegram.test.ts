@@ -40,6 +40,22 @@ describe("handleAdminCommand", () => {
     expect(sendPhoto).toHaveBeenCalledWith("data:image/png;base64,abc", expect.stringContaining("sim_openai_01"));
     expect(store.items).toHaveLength(1);
   });
+
+  it("stores phone number passed to /addwa", async () => {
+    const store = fakeStore();
+
+    await handleAdminCommand({
+      ...baseContext,
+      text: "/addwa sim_openai_01 +84901234567",
+      allowedUserIds: new Set([111]),
+      reply: vi.fn(),
+      sendPhoto: vi.fn(),
+      evolution: fakeEvolution(),
+      store
+    });
+
+    expect(store.items[0]).toMatchObject({ phoneNumber: "+84901234567" });
+  });
 });
 
 function fakeEvolution() {
