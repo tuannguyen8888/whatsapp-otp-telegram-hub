@@ -24,6 +24,24 @@ describe("normalizeBaileysMessage", () => {
       message: { conversation: "123456" }
     })).toBeUndefined();
   });
+
+  it("normalizes text inside ephemeral message wrappers", () => {
+    const result = normalizeBaileysMessage("sim_openai_01", {
+      key: { fromMe: false, remoteJid: "12345@s.whatsapp.net" },
+      message: {
+        ephemeralMessage: {
+          message: {
+            extendedTextMessage: {
+              text: "Your OTP is 123456."
+            }
+          }
+        }
+      },
+      messageTimestamp: 1782219600
+    });
+
+    expect(result?.text).toBe("Your OTP is 123456.");
+  });
 });
 
 describe("requestPairingCodeWithRetry", () => {

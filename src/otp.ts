@@ -1,9 +1,8 @@
 import type { TelegramOtpMessage } from "./types.js";
 
 const otpPatterns = [
-  /(?:code|otp|verification|verify|mã|ma|xac minh|xác minh)[^0-9]{0,24}(\d{4,8})/i,
-  /\b(\d{3})[-\s](\d{3})\b/,
-  /\b(\d{4,8})\b/
+  /(?:code|otp|verification|verify|mã|ma|xac minh|xác minh|xac thuc|xác thực)[^0-9]{0,40}(\d(?:[\s-]*\d){3,7})/i,
+  /(?<!\d)(\d(?:[\s-]*\d){3,7})(?!\d)/
 ];
 
 export function extractOtp(text: string): string | undefined {
@@ -13,7 +12,7 @@ export function extractOtp(text: string): string | undefined {
       continue;
     }
 
-    const code = match.slice(1).filter(Boolean).join("");
+    const code = match.slice(1).filter(Boolean).join("").replace(/\D/g, "");
     if (/^\d{4,8}$/.test(code) && !looksLikePhoneNumber(text, code)) {
       return code;
     }

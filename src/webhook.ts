@@ -87,7 +87,10 @@ export function createWebhookServer(config: HubConfig, bot: Bot, store: Instance
         text: normalized.text
       }, config.forwardRawMessagesWithoutOtp);
       if (telegramMessage) {
+        console.log(`Forwarding ${telegramMessage.otp ? "OTP" : "raw"} Evolution message alias=${normalized.alias} from=${normalized.from}`);
         await sendOtpToTelegram(bot, config.telegramOtpChatId, telegramMessage);
+      } else {
+        console.log(`Dropped non-OTP Evolution message alias=${normalized.alias} from=${normalized.from}`);
       }
     }
     const qrUpdate = normalizeEvolutionQrUpdate(instanceName, payload);

@@ -124,9 +124,13 @@ export class WhatsAppClient {
     });
     socket.ev.on("messages.upsert", async ({ messages }) => {
       for (const message of messages) {
-        const normalized = normalizeBaileysMessage(alias, message);
-        if (normalized) {
-          await this.options.onMessage?.(normalized);
+        try {
+          const normalized = normalizeBaileysMessage(alias, message);
+          if (normalized) {
+            await this.options.onMessage?.(normalized);
+          }
+        } catch (error) {
+          console.error(`Failed to process WhatsApp message for ${alias}:`, error);
         }
       }
     });
@@ -229,12 +233,34 @@ export async function requestPairingCodeWithRetry(
 }
 
 function extractText(message: WAMessage): string | undefined {
-  const content = message.message;
+  const content = unwrapMessageContent(message.message);
   const text = content?.conversation
     ?? content?.extendedTextMessage?.text
     ?? content?.imageMessage?.caption
-    ?? content?.videoMessage?.caption;
+    ?? content?.videoMessage?.caption
+    ?? content?.documentMessage?.caption
+    ?? content?.buttonsMessage?.contentText
+    ?? content?.templateMessage?.hydratedTemplate?.hydratedContentText
+    ?? content?.listMessage?.description;
   return typeof text === "string" && text.trim() !== "" ? text : undefined;
+}
+
+function unwrapMessageContent(content: WAMessage["message"]): WAMessage["message"] {
+  let current = content;
+  for (let depth = 0; depth < 5; depth += 1) {
+    const record = current as Record<string, { message?: WAMessage["message"] } | undefined> | undefined;
+    const wrapped = record?.ephemeralMessage?.message
+      ?? record?.viewOnceMessage?.message
+      ?? record?.viewOnceMessageV2?.message
+      ?? record?.documentWithCaptionMessage?.message
+      ?? record?.editedMessage?.message
+      ?? record?.deviceSentMessage?.message;
+    if (!wrapped) {
+      return current;
+    }
+    current = wrapped;
+  }
+  return current;
 }
 
 function normalizePhoneNumberForPairing(phoneNumber: string): string {

@@ -10,6 +10,15 @@ describe("extractOtp", () => {
     expect(extractOtp("Use 123-456 to sign in.")).toBe("123456");
   });
 
+  it("extracts a code split into uneven digit groups", () => {
+    expect(extractOtp("Use 12-3456 to sign in.")).toBe("123456");
+    expect(extractOtp("Use 1234 56 to sign in.")).toBe("123456");
+  });
+
+  it("extracts a code split into single digit groups", () => {
+    expect(extractOtp("Your OTP is 1 2 3 4 5 6.")).toBe("123456");
+  });
+
   it("does not treat long phone numbers as OTP", () => {
     expect(extractOtp("Call +84901234567 if this was not you.")).toBeUndefined();
   });

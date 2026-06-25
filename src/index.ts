@@ -22,8 +22,10 @@ const whatsapp = new WhatsAppClient({
       text: message.text
     }, config.forwardRawMessagesWithoutOtp);
     if (!telegramMessage) {
+      console.log(`Dropped non-OTP WhatsApp message alias=${message.alias} from=${message.from}`);
       return;
     }
+    console.log(`Forwarding ${telegramMessage.otp ? "OTP" : "raw"} WhatsApp message alias=${message.alias} from=${message.from}`);
     await sendOtpToTelegram(bot, config.telegramOtpChatId, telegramMessage);
   },
   onStatus: async (alias, status) => {
