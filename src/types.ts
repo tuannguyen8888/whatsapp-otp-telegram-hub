@@ -7,6 +7,7 @@ export type HubConfig = {
   telegramOtpChatId: string;
   telegramAllowedUserIds: Set<number>;
   evolutionWebhookSecret: string;
+  forwardRawMessagesWithoutOtp: boolean;
 };
 
 export type WhatsAppInstance = {

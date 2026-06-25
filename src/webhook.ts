@@ -1,8 +1,8 @@
 import { createServer, type IncomingMessage } from "node:http";
 import type { Bot } from "grammy";
-import type { HubConfig, NormalizedQrUpdate, NormalizedWhatsAppMessage, TelegramOtpMessage } from "./types.js";
+import type { HubConfig, NormalizedQrUpdate, NormalizedWhatsAppMessage } from "./types.js";
 import type { InstanceStore } from "./storage.js";
-import { extractOtp } from "./otp.js";
+import { buildTelegramOtpMessage } from "./forwarding.js";
 import { sendOtpToTelegram, sendQrToTelegram } from "./telegram.js";
 
 export function verifyWebhookSecret(received: string | undefined, expected: string): boolean {
@@ -80,14 +80,15 @@ export function createWebhookServer(config: HubConfig, bot: Bot, store: Instance
     const normalized = normalizeEvolutionMessage(instanceName, payload);
     if (normalized) {
       const instance = await store.get(normalized.alias);
-      const telegramMessage: TelegramOtpMessage = {
-        otp: extractOtp(normalized.text),
+      const telegramMessage = buildTelegramOtpMessage({
         alias: normalized.alias,
         phoneNumber: instance?.phoneNumber,
         from: normalized.from,
         text: normalized.text
-      };
-      await sendOtpToTelegram(bot, config.telegramOtpChatId, telegramMessage);
+      }, config.forwardRawMessagesWithoutOtp);
+      if (telegramMessage) {
+        await sendOtpToTelegram(bot, config.telegramOtpChatId, telegramMessage);
+      }
     }
     const qrUpdate = normalizeEvolutionQrUpdate(instanceName, payload);
     if (qrUpdate) {

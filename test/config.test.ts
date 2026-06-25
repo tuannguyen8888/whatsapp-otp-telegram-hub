@@ -17,6 +17,16 @@ describe("parseConfig", () => {
     expect(config.port).toBe(8787);
     expect(config.telegramAllowedUserIds.has(111)).toBe(true);
     expect(config.telegramAllowedUserIds.has(222)).toBe(true);
+    expect(config.forwardRawMessagesWithoutOtp).toBe(false);
+  });
+
+  it("parses optional raw non-OTP forwarding flag", () => {
+    const config = parseConfig({
+      ...validEnv,
+      FORWARD_RAW_MESSAGES_WITHOUT_OTP: "true"
+    });
+
+    expect(config.forwardRawMessagesWithoutOtp).toBe(true);
   });
 
   it("throws when a required value is missing", () => {

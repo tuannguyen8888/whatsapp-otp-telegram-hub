@@ -4,8 +4,7 @@ import { InstanceStore } from "./storage.js";
 import { createTelegramBot, sendOtpToTelegram, sendQrToTelegram, setupTelegramCommands } from "./telegram.js";
 import { createWebhookServer } from "./webhook.js";
 import { WhatsAppClient } from "./whatsapp.js";
-import { extractOtp } from "./otp.js";
-import type { TelegramOtpMessage } from "./types.js";
+import { buildTelegramOtpMessage } from "./forwarding.js";
 
 const config = parseConfig();
 const store = new InstanceStore(config.storagePath);
@@ -16,13 +15,15 @@ const whatsapp = new WhatsAppClient({
   },
   onMessage: async (message) => {
     const instance = await store.get(message.alias);
-    const telegramMessage: TelegramOtpMessage = {
-      otp: extractOtp(message.text),
+    const telegramMessage = buildTelegramOtpMessage({
       alias: message.alias,
       phoneNumber: instance?.phoneNumber,
       from: message.from,
       text: message.text
-    };
+    }, config.forwardRawMessagesWithoutOtp);
+    if (!telegramMessage) {
+      return;
+    }
     await sendOtpToTelegram(bot, config.telegramOtpChatId, telegramMessage);
   },
   onStatus: async (alias, status) => {

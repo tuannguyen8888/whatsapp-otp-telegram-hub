@@ -11,6 +11,7 @@ The hub uses WhatsApp Web sessions. Those sessions can disconnect or become inva
 ## Features
 
 - Forward incoming WhatsApp OTP messages to one Telegram chat.
+- Optionally forward raw messages when no OTP is detected.
 - Add WhatsApp sessions from Telegram with `/addwa <alias>` or `/addwa <alias> <phoneNumber>`.
 - Refresh QR with `/qr <alias>`.
 - List sessions with `/listwa`.
@@ -38,10 +39,13 @@ HUB_STORAGE_PATH=./data/instances.json
 TELEGRAM_BOT_TOKEN=replace-me
 TELEGRAM_OTP_CHAT_ID=replace-me
 TELEGRAM_ALLOWED_USER_IDS=123456789
+FORWARD_RAW_MESSAGES_WITHOUT_OTP=false
 
 # Optional: only used if posting Evolution-compatible webhooks to /webhook/evolution.
 EVOLUTION_WEBHOOK_SECRET=replace-me
 ```
+
+Set `FORWARD_RAW_MESSAGES_WITHOUT_OTP=true` if you want every non-OTP WhatsApp text forwarded as a raw Telegram message. Keep it `false` to reduce noise and forward only messages where an OTP is detected.
 
 WhatsApp session files are stored under `./data/sessions` when using Docker Compose.
 

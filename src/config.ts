@@ -22,6 +22,20 @@ function parseAllowedUserIds(value: string): Set<number> {
   return new Set(ids);
 }
 
+function parseBoolean(env: Record<string, string | undefined>, key: string, defaultValue: boolean): boolean {
+  const value = env[key]?.trim().toLowerCase();
+  if (!value) {
+    return defaultValue;
+  }
+  if (["1", "true", "yes", "on"].includes(value)) {
+    return true;
+  }
+  if (["0", "false", "no", "off"].includes(value)) {
+    return false;
+  }
+  throw new Error(`${key} must be true or false`);
+}
+
 export function parseConfig(env: Record<string, string | undefined> = process.env): HubConfig {
   return {
     port: Number(env.PORT ?? "8787"),
@@ -29,6 +43,7 @@ export function parseConfig(env: Record<string, string | undefined> = process.en
     telegramBotToken: requireString(env, "TELEGRAM_BOT_TOKEN"),
     telegramOtpChatId: requireString(env, "TELEGRAM_OTP_CHAT_ID"),
     telegramAllowedUserIds: parseAllowedUserIds(requireString(env, "TELEGRAM_ALLOWED_USER_IDS")),
-    evolutionWebhookSecret: env.EVOLUTION_WEBHOOK_SECRET?.trim() || "local-webhook-secret"
+    evolutionWebhookSecret: env.EVOLUTION_WEBHOOK_SECRET?.trim() || "local-webhook-secret",
+    forwardRawMessagesWithoutOtp: parseBoolean(env, "FORWARD_RAW_MESSAGES_WITHOUT_OTP", false)
   };
 }
