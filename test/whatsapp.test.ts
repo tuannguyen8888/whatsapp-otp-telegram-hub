@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeBaileysMessage, requestPairingCodeWithRetry } from "../src/whatsapp.js";
+import { describeBaileysMessageForLog, normalizeBaileysMessage, requestPairingCodeWithRetry } from "../src/whatsapp.js";
 
 describe("normalizeBaileysMessage", () => {
   it("normalizes inbound text messages", () => {
@@ -41,6 +41,22 @@ describe("normalizeBaileysMessage", () => {
     });
 
     expect(result?.text).toBe("Your OTP is 123456.");
+  });
+
+  it("describes ignored messages without exposing text content", () => {
+    const description = describeBaileysMessageForLog({
+      key: { fromMe: false, remoteJid: "12345@s.whatsapp.net" },
+      message: {
+        extendedTextMessage: {
+          text: "Your OTP is 123456."
+        }
+      }
+    });
+
+    expect(description).toContain("from=12345@s.whatsapp.net");
+    expect(description).toContain("contentTypes=extendedTextMessage");
+    expect(description).not.toContain("123456");
+    expect(description).not.toContain("Your OTP");
   });
 });
 

@@ -109,12 +109,14 @@ export class WhatsAppClient {
       }
 
       if (update.connection === "open") {
+        console.log(`WhatsApp connection open alias=${alias}`);
         await this.options.onStatus?.(alias, "connected");
         return;
       }
 
       if (update.connection === "close") {
         const statusCode = (update.lastDisconnect?.error as { output?: { statusCode?: number } } | undefined)?.output?.statusCode;
+        console.log(`WhatsApp connection close alias=${alias} statusCode=${statusCode ?? "unknown"}`);
         if (statusCode === DisconnectReason.loggedOut) {
           await this.options.onStatus?.(alias, "disconnected");
           return;
@@ -123,11 +125,14 @@ export class WhatsAppClient {
       }
     });
     socket.ev.on("messages.upsert", async ({ messages }) => {
+      console.log(`Received WhatsApp messages.upsert alias=${alias} count=${messages.length}`);
       for (const message of messages) {
         try {
           const normalized = normalizeBaileysMessage(alias, message);
           if (normalized) {
             await this.options.onMessage?.(normalized);
+          } else {
+            console.log(`Ignored WhatsApp message alias=${alias} ${describeBaileysMessageForLog(message)}`);
           }
         } catch (error) {
           console.error(`Failed to process WhatsApp message for ${alias}:`, error);
@@ -207,6 +212,18 @@ export function normalizeBaileysMessage(alias: string, message: unknown): Normal
   };
 }
 
+export function describeBaileysMessageForLog(message: unknown): string {
+  const whatsappMessage = message as WAMessage;
+  const topTypes = getMessageTypes(whatsappMessage.message);
+  const contentTypes = getMessageTypes(unwrapMessageContent(whatsappMessage.message));
+  return [
+    `from=${whatsappMessage.key?.remoteJid ?? "unknown"}`,
+    `fromMe=${whatsappMessage.key?.fromMe === true}`,
+    `topTypes=${topTypes.join(",") || "none"}`,
+    `contentTypes=${contentTypes.join(",") || "none"}`
+  ].join(" ");
+}
+
 export async function requestPairingCodeWithRetry(
   socket: PairingSocket,
   phoneNumber: string,
@@ -261,6 +278,10 @@ function unwrapMessageContent(content: WAMessage["message"]): WAMessage["message
     current = wrapped;
   }
   return current;
+}
+
+function getMessageTypes(content: WAMessage["message"]): string[] {
+  return Object.keys(content ?? {}).filter((key) => key !== "messageContextInfo");
 }
 
 function normalizePhoneNumberForPairing(phoneNumber: string): string {
