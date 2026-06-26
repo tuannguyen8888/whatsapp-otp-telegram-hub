@@ -19,6 +19,10 @@ describe("extractOtp", () => {
     expect(extractOtp("Your OTP is 1 2 3 4 5 6.")).toBe("123456");
   });
 
+  it("extracts Vietnamese verification code messages", () => {
+    expect(extractOtp("938609 là mã xác minh của bạn.")).toBe("938609");
+  });
+
   it("does not treat long phone numbers as OTP", () => {
     expect(extractOtp("Call +84901234567 if this was not you.")).toBeUndefined();
   });

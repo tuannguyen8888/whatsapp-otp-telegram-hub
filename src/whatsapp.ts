@@ -257,7 +257,12 @@ function extractText(message: WAMessage): string | undefined {
     ?? content?.videoMessage?.caption
     ?? content?.documentMessage?.caption
     ?? content?.buttonsMessage?.contentText
+    ?? content?.interactiveMessage?.body?.text
+    ?? content?.interactiveMessage?.footer?.text
     ?? content?.templateMessage?.hydratedTemplate?.hydratedContentText
+    ?? content?.templateMessage?.hydratedFourRowTemplate?.hydratedContentText
+    ?? content?.templateMessage?.interactiveMessageTemplate?.body?.text
+    ?? content?.templateMessage?.interactiveMessageTemplate?.footer?.text
     ?? content?.listMessage?.description;
   return typeof text === "string" && text.trim() !== "" ? text : undefined;
 }

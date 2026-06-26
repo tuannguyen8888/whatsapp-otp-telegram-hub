@@ -43,6 +43,40 @@ describe("normalizeBaileysMessage", () => {
     expect(result?.text).toBe("Your OTP is 123456.");
   });
 
+  it("normalizes text inside interactive message bodies", () => {
+    const result = normalizeBaileysMessage("sim_openai_01", {
+      key: { fromMe: false, remoteJid: "12345@s.whatsapp.net" },
+      message: {
+        interactiveMessage: {
+          body: {
+            text: "938609 là mã xác minh của bạn."
+          }
+        }
+      },
+      messageTimestamp: 1782219600
+    });
+
+    expect(result?.text).toBe("938609 là mã xác minh của bạn.");
+  });
+
+  it("normalizes text inside template interactive message bodies", () => {
+    const result = normalizeBaileysMessage("sim_openai_01", {
+      key: { fromMe: false, remoteJid: "12345@s.whatsapp.net" },
+      message: {
+        templateMessage: {
+          interactiveMessageTemplate: {
+            body: {
+              text: "553472 là mã xác minh của bạn."
+            }
+          }
+        }
+      },
+      messageTimestamp: 1782219600
+    });
+
+    expect(result?.text).toBe("553472 là mã xác minh của bạn.");
+  });
+
   it("describes ignored messages without exposing text content", () => {
     const description = describeBaileysMessageForLog({
       key: { fromMe: false, remoteJid: "12345@s.whatsapp.net" },
